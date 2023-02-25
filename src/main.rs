@@ -41,19 +41,31 @@ fn main() -> Result<()> {
     match args.command {
         Commands::Component { name, dest } => {
             context.insert("name", &name);
-            let result = match tera.render("component/index.tsx", &context) {
+            let content = match tera.render("component/index.tsx", &context) {
                 Ok(it) => it,
-                Err(_err) => return Err(Error::Static("cannot parse templates")),
+                Err(_) => return Err(Error::Static("cannot parse templates")),
             };
-            let folder_path = f!("{}/{}", dest, name.to_lowercase());
-            fs::create_dir_all(folder_path)?;
-            let path = f!("{}/{}/index.tsx", dest, name.to_lowercase());
-            let mut file = File::create(path).expect("Unable to create file");
-            file.write_all(result.as_bytes()).expect("Unable to write data");
+            create_components(name, dest, content)?;
         },
         Commands::Page { name } => {
             context.insert("name", &name);
+            let content = match tera.render("component/index.tsx", &context) {
+                Ok(it) => it,
+                Err(_) => return Err(Error::Static("cannot parse templates")),
+            };
+            let path = f!("pages/{}.tsx", name.to_lowercase());
+            let mut file = File::create(path).expect("Unable to create file");
+            file.write_all(content.as_bytes()).expect("Unable to write data");
         },
     };
+    Ok(())
+}
+
+fn create_components(name: String, dest: String, content: String) -> Result<()> {
+    let folder_path = f!("{}/{}", dest, name.to_lowercase());
+    fs::create_dir_all(folder_path)?;
+    let path = f!("{}/{}/index.tsx", dest, name.to_lowercase());
+    let mut file = File::create(path).expect("Unable to create file");
+    file.write_all(content.as_bytes()).expect("Unable to write data");
     Ok(())
 }
