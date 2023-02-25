@@ -1,7 +1,8 @@
 //! Crate prelude
+pub mod error;
 
 // Re-export the crate Error.
-pub use crate::core::error::Error;
+pub use crate::prelude::error::Error;
 
 // Alias Result to be the crate Result.
 pub type Result<T> = core::result::Result<T, Error>;
